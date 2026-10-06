@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习评价卡 ⭐</title>
+<style>
+  *{ box-sizing: border-box; }
+
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(180deg,#bfe6ff 0%,#dcf1ff 32%,#eafbf1 65%,#d6f2c6 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 16px 150px;
+    position:relative;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* ---------- 云朵 ---------- */
+  .cloud{
+    position:fixed;
+    background:#fff;
+    border-radius:100px;
+    opacity:.9;
+    z-index:0;
+    animation:float 9s ease-in-out infinite;
+  }
+  .cloud::before,.cloud::after{
+    content:"";position:absolute;background:#fff;border-radius:50%;
+  }
+  .cloud.c1{ width:132px;height:42px;top:7%;left:5%; }
+  .cloud.c1::before{ width:62px;height:62px;top:-28px;left:16px; }
+  .cloud.c1::after{ width:46px;height:46px;top:-20px;left:68px; }
+
+  .cloud.c2{ width:100px;height:34px;top:16%;right:7%; animation-delay:-3s; }
+  .cloud.c2::before{ width:48px;height:48px;top:-22px;left:12px; }
+  .cloud.c2::after{ width:36px;height:36px;top:-16px;left:52px; }
+
+  .cloud.c3{ width:86px;height:28px;top:48%;left:2%; opacity:.65; animation-delay:-6s; }
+  .cloud.c3::before{ width:40px;height:40px;top:-18px;left:10px; }
+  .cloud.c3::after{ width:30px;height:30px;top:-13px;left:44px; }
+
+  @keyframes float{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-14px); }
+  }
+
+  /* ---------- 草地 ---------- */
+  .grass{
+    position:fixed;
+    left:-5%; right:-5%; bottom:0;
+    height:120px;
+    background:linear-gradient(180deg,#b3e887 0%,#8dd45c 40%,#6fbf46 100%);
+    border-radius:50% 50% 0 0 / 70px 70px 0 0;
+    z-index:1;
+    pointer-events:none;
+  }
+  .grass::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; top:34px; bottom:0;
+    background-image:
+      radial-gradient(circle at 12% 40%, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 34% 70%, #fff59d 0 4px, transparent 5px),
+      radial-gradient(circle at 62% 35%, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 82% 65%, #ffe0b2 0 4px, transparent 5px);
+    background-size:220px 100%,300px 100%,260px 100%,340px 100%;
+    opacity:.9;
+  }
+
+  /* ---------- 主卡片 ---------- */
+  .card{
+    position:relative;
+    z-index:2;
+    width:min(920px,100%);
+    background:rgba(255,255,255,.94);
+    border:6px solid #ffffff;
+    border-radius:34px;
+    padding:30px 30px 36px;
+    box-shadow:
+      0 18px 45px rgba(80,140,190,.22),
+      0 0 0 3px #d9eefb inset;
+  }
+
+  h1{
+    margin:0 0 24px;
+    text-align:center;
+    font-size:clamp(26px,4.6vw,40px);
+    letter-spacing:6px;
+    color:#ff8a3d;
+    text-shadow:
+      2px 2px 0 #fff,
+      4px 4px 0 rgba(255,196,120,.45);
+  }
+  h1 .deco{ font-size:.75em; letter-spacing:0; }
+
+  /* ---------- 姓名栏 ---------- */
+  .name-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:0 4px 18px;
+    padding:12px 18px;
+    background:linear-gradient(135deg,#f0faff,#e8f6ff);
+    border:2px dashed #a9d9f5;
+    border-radius:20px;
+    transition:border-color .2s, background .2s;
+  }
+  .name-bar .emoji{ font-size:22px; }
+  .name-bar label{
+    font-size:17px;
+    font-weight:700;
+    color:#3d7ea6;
+    letter-spacing:1px;
+  }
+  .name-bar label .req{
+    color:#ff5b5b;
+    font-size:19px;
+    vertical-align:middle;
+  }
+  .name-bar input{
+    flex:1;
+    min-width:130px;
+    border:none;
+    outline:none;
+    background:#fff;
+    border-radius:14px;
+    padding:10px 16px;
+    font-size:16px;
+    font-family:inherit;
+    color:#3a4a55;
+    box-shadow:0 0 0 2px #cfe9fa inset;
+    transition:.2s;
+  }
+  .name-bar input:focus{ box-shadow:0 0 0 3px #7fc8f0 inset; }
+  .name-bar input::placeholder{ color:#a9c3d4; }
+
+  /* 姓名出错状态 */
+  .name-bar.error{
+    border-color:#ff9b9b;
+    background:linear-gradient(135deg,#fff2f2,#ffe8e8);
+  }
+  .name-bar.error input{
+    box-shadow:0 0 0 3px #ff8f8f inset;
+    animation:shakeInput .3s ease 2;
+  }
+  @keyframes shakeInput{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-5px); }
+    75%{ transform:translateX(5px); }
+  }
+
+  .name-error{
+    display:none;
+    margin:-10px 6px 16px;
+    font-size:14px;
+    font-weight:700;
+    color:#e85050;
+    letter-spacing:.5px;
+  }
+  .name-error.show{ display:block; }
+
+  /* ---------- 表格 ---------- */
+  .table-wrap{
+    overflow-x:auto;
+    border-radius:20px;
+    padding-bottom:4px;
+  }
+  table{
+    width:100%;
+    min-width:560px;
+    border-collapse:separate;
+    border-spacing:0;
+    table-layout:fixed;
+  }
+
+  th,td{
+    border-right:1.5px solid #cfe8f7;
+    border-bottom:1.5px solid #cfe8f7;
+    padding:14px 10px;
+    vertical-align:middle;
+  }
+  th:first-child,td:first-child{ border-left:1.5px solid #cfe8f7; }
+  thead th{ border-top:1.5px solid #cfe8f7; }
+
+  thead th{ background:#f0faff; }
+  thead th:first-child{ border-top-left-radius:18px; }
+  thead th:last-child{ border-top-right-radius:18px; }
+  tbody tr:last-child td:first-child{ border-bottom-left-radius:18px; }
+  tbody tr:last-child td:last-child{ border-bottom-right-radius:18px; }
+
+  th.col-dim,td.dim{
+    width:46%;
+    text-align:left;
+    font-size:16px;
+    line-height:1.6;
+    color:#2f4f63;
+    padding-left:20px;
+    padding-right:16px;
+  }
+  th.col-dim{
+    font-size:17px;
+    font-weight:800;
+    color:#2b7fb0;
+    letter-spacing:2px;
+  }
+  td.dim{ background:#fcfdff; }
+
+  thead th.col-opt{ text-align:center; }
+  .th-inner{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+  }
+  .th-title{
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:2px;
+  }
+  .t1 .th-title{ color:#ff8a3d; }
+  .t2 .th-title{ color:#3cae63; }
+  .t3 .th-title{ color:#4a9de0; }
+  .th-stars{ font-size:14px; letter-spacing:1px; }
+
+  /* 选项单元格 */
+  td.opt{
+    position:relative;
+    text-align:center;
+    cursor:pointer;
+    transition:background .18s ease;
+    user-select:none;
+  }
+  td.opt:hover{ background:#f5fcff; }
+  td.opt input{ position:absolute; opacity:0; pointer-events:none; }
+  td.opt .stars{
+    display:inline-block;
+    font-size:16px;
+    letter-spacing:1px;
+    opacity:.22;
+    filter:grayscale(1);
+    transition:all .2s ease;
+  }
+  td.opt.selected{ background:#fff8e3; }
+  td.opt.selected .stars{
+    opacity:1;
+    filter:none;
+    transform:scale(1.3);
+  }
+  td.opt.selected::after{
+    content:"";
+    position:absolute;
+    inset:5px;
+    border:3px solid #ffd35c;
+    border-radius:14px;
+    pointer-events:none;
+  }
+
+  /* 抖动提示 */
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+  tr.shake td{
+    animation:shake .3s ease 2;
+    background:#ffeef0;
+  }
+
+  /* ---------- 顶部提示条 ---------- */
+  .toast{
+    position:fixed;
+    left:50%;
+    top:22px;
+    transform:translate(-50%,-140%);
+    z-index:80;
+    background:#fff;
+    border-radius:999px;
+    padding:12px 26px;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:#e85050;
+    box-shadow:0 10px 28px rgba(120,160,200,.35);
+    border:3px solid #ffd7d7;
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+    white-space:nowrap;
+    max-width:92vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .toast.show{ transform:translate(-50%,0); }
+
+  /* ---------- 提交按钮 ---------- */
+  .submit-btn{
+    display:block;
+    margin:28px auto 0;
+    padding:15px 52px;
+    font-family:inherit;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:3px;
+    color:#fff;
+    background:linear-gradient(180deg,#ffbe5c,#ff8a3d);
+    border:none;
+    border-radius:999px;
+    box-shadow:0 6px 0 #e0742c, 0 12px 22px rgba(255,140,60,.35);
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, filter .2s;
+  }
+  .submit-btn:hover{ filter:brightness(1.05); }
+  .submit-btn:active{
+    transform:translateY(5px);
+    box-shadow:0 1px 0 #e0742c, 0 4px 10px rgba(255,140,60,.3);
+  }
+  .submit-btn:disabled{
+    filter:grayscale(.35);
+    cursor:not-allowed;
+    transform:translateY(3px);
+    box-shadow:0 3px 0 #c9a37e;
+  }
+
+  /* ---------- 吉祥物 ---------- */
+  .mascot{
+    position:absolute;
+    right:-4px;
+    bottom:-78px;
+    width:132px;
+    z-index:3;
+    animation:bob 2.6s ease-in-out infinite;
+    pointer-events:none;
+    filter:drop-shadow(0 8px 12px rgba(200,150,40,.3));
+  }
+  @keyframes bob{
+    0%,100%{ transform:translateY(0) rotate(-3deg); }
+    50%{ transform:translateY(-10px) rotate(3deg); }
+  }
+
+  /* ---------- 成功弹窗 ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(120,180,220,.35);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:90;
+    opacity:0;
+    visibility:hidden;
+    transition:.28s ease;
+  }
+  .overlay.show{ opacity:1; visibility:visible; }
+
+  .dialog{
+    width:min(420px,100%);
+    background:#fff;
+    border-radius:30px;
+    padding:38px 28px 32px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(60,120,170,.3);
+    border:5px solid #fff;
+    outline:3px solid #cfe9fa;
+    transform:scale(.85);
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .overlay.show .dialog{ transform:scale(1); }
+  .dialog .big-star{
+    font-size:58px;
+    display:block;
+    line-height:1;
+    animation:pop .6s ease;
+  }
+  @keyframes pop{
+    0%{ transform:scale(0) rotate(-40deg); }
+    70%{ transform:scale(1.25) rotate(10deg); }
+    100%{ transform:scale(1) rotate(0); }
+  }
+  .dialog h2{
+    margin:16px 0 8px;
+    font-size:24px;
+    color:#ff8a3d;
+    letter-spacing:2px;
+  }
+  .dialog p{
+    margin:0 0 24px;
+    font-size:16px;
+    line-height:1.7;
+    color:#5c7686;
+  }
+  .dialog button{
+    font-family:inherit;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:#fff;
+    background:linear-gradient(180deg,#8ad86a,#59bf4a);
+    border:none;
+    border-radius:999px;
+    padding:12px 40px;
+    cursor:pointer;
+    box-shadow:0 5px 0 #3f9c35;
+    transition:.12s;
+  }
+  .dialog button:active{
+    transform:translateY(4px);
+    box-shadow:0 1px 0 #3f9c35;
+  }
+
+  /* ---------- 小屏适配 ---------- */
+  @media (max-width:680px){
+    body{ padding:26px 12px 130px; }
+    .card{ padding:22px 16px 28px; border-radius:26px; }
+    h1{ letter-spacing:3px; }
+    th,td{ padding:11px 6px; }
+    th.col-dim,td.dim{ font-size:14.5px; padding-left:12px; }
+    th.col-dim{ font-size:15px; letter-spacing:1px; }
+    .th-title{ font-size:14.5px; letter-spacing:1px; }
+    .th-stars{ font-size:11px; }
+    td.opt .stars{ font-size:13px; }
+    .mascot{ width:88px; bottom:-56px; right:-2px; }
+    .submit-btn{ font-size:17px; padding:13px 38px; letter-spacing:2px; }
+    .name-bar{ padding:10px 12px; }
+    .name-bar label{ font-size:15px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 云朵 -->
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+
+  <!-- 顶部提示条 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 主卡片 -->
+  <main class="card">
+    <h1><span class="deco">🌟</span> 学习评价卡 <span class="deco">🌟</span></h1>
+
+    <form id="form" novalidate>
+
+      <div class="name-bar" id="nameBar">
+        <span class="emoji">🐣</span>
+        <label for="name">我的名字：<span class="req">*</span></label>
+        <input id="name" name="name" type="text" maxlength="20"
+               placeholder="请输入你的名字（必填）" autocomplete="off">
+      </div>
+      <p class="name-error" id="nameError">✏️ 请先填写你的名字哦～</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-dim">评价维度</th>
+              <th class="col-opt t1">
+                <div class="th-inner">
+                  <span class="th-title">我很棒</span>
+                  <span class="th-stars">⭐⭐⭐</span>
+                </div>
+              </th>
+              <th class="col-opt t2">
+                <div class="th-inner">
+                  <span class="th-title">我能行</span>
+                  <span class="th-stars">⭐⭐</span>
+                </div>
+              </th>
+              <th class="col-opt t3">
+                <div class="th-inner">
+                  <span class="th-title">继续加油</span>
+                  <span class="th-stars">⭐</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="dim">我能根据调查内容设计合适的调查表进行调查。</td>
+              <td class="opt"><input type="radio" name="q1" value="我很棒⭐⭐⭐"><span class="stars">⭐⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q1" value="我能行⭐⭐"><span class="stars">⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q1" value="继续加油⭐"><span class="stars">⭐</span></td>
+            </tr>
+            <tr>
+              <td class="dim">我能体会角度不同，调查问题也就不同，收集到的数据也就不同。</td>
+              <td class="opt"><input type="radio" name="q2" value="我很棒⭐⭐⭐"><span class="stars">⭐⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q2" value="我能行⭐⭐"><span class="stars">⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q2" value="继续加油⭐"><span class="stars">⭐</span></td>
+            </tr>
+            <tr>
+              <td class="dim">我能在调查活动中主动和别人合作，并感受到统计的广泛应用。</td>
+              <td class="opt"><input type="radio" name="q3" value="我很棒⭐⭐⭐"><span class="stars">⭐⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q3" value="我能行⭐⭐"><span class="stars">⭐⭐</span></td>
+              <td class="opt"><input type="radio" name="q3" value="继续加油⭐"><span class="stars">⭐</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">提交我的评价 ✨</button>
+    </form>
+
+    <!-- 吉祥物 -->
+    <div class="mascot">
+      <svg viewBox="0 0 140 140" width="100%" height="100%">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFE873"/>
+            <stop offset="100%" stop-color="#FFC42E"/>
+          </linearGradient>
+        </defs>
+        <path d="M70 12 L87 50 L129 56 L99 85 L106 128 L70 108 L34 128 L41 85 L11 56 L53 50 Z"
+              fill="url(#starGrad)" stroke="#E8A200" stroke-width="5" stroke-linejoin="round"/>
+        <ellipse cx="46" cy="72" rx="7" ry="5" fill="#FFB3C1" opacity=".9"/>
+        <ellipse cx="94" cy="72" rx="7" ry="5" fill="#FFB3C1" opacity=".9"/>
+        <circle cx="55" cy="58" r="5.5" fill="#4A3319"/>
+        <circle cx="85" cy="58" r="5.5" fill="#4A3319"/>
+        <circle cx="57" cy="56" r="2" fill="#fff"/>
+        <circle cx="87" cy="56" r="2" fill="#fff"/>
+        <path d="M61 73 Q70 82 79 73" stroke="#4A3319" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </main>
+
+  <!-- 草地 -->
+  <div class="grass"></div>
+
+  <!-- 成功弹窗 -->
+  <div class="overlay" id="overlay">
+    <div class="dialog">
+      <span class="big-star">🌟</span>
+      <h2>提交成功啦！</h2>
+      <p>你的评价已经记录下来啦～<br>继续加油，你真是棒棒哒！</p>
+      <button type="button" id="againBtn">再填一次</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API_URL = 'https://quickform.cn/api/p0c7wwr8qm';
+
+  var form       = document.getElementById('form');
+  var submitBtn  = document.getElementById('submitBtn');
+  var overlay    = document.getElementById('overlay');
+  var againBtn   = document.getElementById('againBtn');
+  var nameInput  = document.getElementById('name');
+  var nameBar    = document.getElementById('nameBar');
+  var nameError  = document.getElementById('nameError');
+  var toastEl    = document.getElementById('toast');
+
+  var toastTimer = null;
+
+  /* ---------- 顶部提示 ---------- */
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 2600);
+  }
+
+  /* ---------- 姓名错误提示 ---------- */
+  function showNameError() {
+    nameBar.classList.add('error');
+    nameError.classList.add('show');
+    nameInput.focus();
+    // 重新触发抖动动画
+    nameBar.style.animation = 'none';
+    void nameBar.offsetWidth;
+    nameBar.style.animation = '';
+  }
+
+  function clearNameError() {
+    nameBar.classList.remove('error');
+    nameError.classList.remove('show');
+  }
+
+  nameInput.addEventListener('input', function () {
+    if (nameInput.value.trim()) clearNameError();
+  });
+
+  /* ---------- 点击单元格完成选择 ---------- */
+  var cells = document.querySelectorAll('td.opt');
+  Array.prototype.forEach.call(cells, function (td) {
+    td.addEventListener('click', function () {
+      var input = td.querySelector('input[type="radio"]');
+      if (!input) return;
+
+      input.checked = true;
+
+      var row = td.closest('tr');
+      var rowCells = row.querySelectorAll('td.opt');
+      Array.prototype.forEach.call(rowCells, function (cell) {
+        cell.classList.remove('selected');
+      });
+      td.classList.add('selected');
+      row.classList.remove('shake');
+    });
+  });
+
+  /* ---------- 发送数据 ---------- */
+  var iframeSeq = 0;
+
+  // 备用方案：隐藏 iframe 提交，彻底绕开 CORS 限制
+  function submitViaIframe(params) {
+    var frameName = 'qf_frame_' + (++iframeSeq);
+
+    var iframe = document.createElement('iframe');
+    iframe.name = frameName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    var f = document.createElement('form');
+    f.method = 'POST';
+    f.action = API_URL;
+    f.target = frameName;
+    f.acceptCharset = 'UTF-8';
+    f.style.display = 'none';
+
+    params.forEach(function (value, key) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      f.appendChild(input);
+    });
+
+    document.body.appendChild(f);
+    f.submit();
+
+    setTimeout(function () {
+      if (f.parentNode) f.parentNode.removeChild(f);
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 5000);
+  }
+
+  function sendData(params, done) {
+    var finished = false;
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      done();
+    }
+
+    // 安全兜底：最长 6 秒必须给出反馈，绝不出现“点了没反应”
+    setTimeout(finish, 6000);
+
+    try {
+      fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: params
+      })
+      .then(function () {
+        finish();
+      })
+      .catch(function () {
+        // 被浏览器拦截时改用 iframe 提交
+        submitViaIframe(params);
+        setTimeout(finish, 900);
+      });
+    } catch (err) {
+      submitViaIframe(params);
+      setTimeout(finish, 900);
+    }
+  }
+
+  /* ---------- 提交 ---------- */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 1) 校验姓名（必填）
+    var nameValue = nameInput.value.trim();
+    if (!nameValue) {
+      showNameError();
+      showToast('✏️ 请先填写你的名字哦～');
+      return;
+    }
+    clearNameError();
+
+    // 2) 校验三个评价项
+    var answers = {};
+    var missing = null;
+
+    ['q1', 'q2', 'q3'].forEach(function (key) {
+      var checked = form.querySelector('input[name="' + key + '"]:checked');
+      if (checked) {
+        answers[key] = checked.value;
+      } else if (!missing) {
+        missing = key;
+      }
+    });
+
+    if (missing) {
+      var firstInput = form.querySelector('input[name="' + missing + '"]');
+      var row = firstInput.closest('tr');
+      row.classList.add('shake');
+      setTimeout(function () { row.classList.remove('shake'); }, 700);
+      showToast('⭐ 还有评价没有选哦，请把每一项都选一选～');
+      return;
+    }
+
+    // 3) 组装数据
+    var params = new URLSearchParams();
+    params.append('name', nameValue);
+    params.append('q1_调查表设计', answers.q1);
+    params.append('q2_多角度调查', answers.q2);
+    params.append('q3_合作与统计应用', answers.q3);
+    params.append('submit_time', new Date().toLocaleString('zh-CN'));
+
+    // 4) 提交
+    submitBtn.disabled = true;
+    var oldText = submitBtn.textContent;
+    submitBtn.textContent = '正在提交… ⏳';
+
+    sendData(params, function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = oldText;
+      overlay.classList.add('show');
+    });
+  });
+
+  /* ---------- 再填一次 ---------- */
+  againBtn.addEventListener('click', function () {
+    overlay.classList.remove('show');
+    form.reset();
+    nameInput.value = '';
+    clearNameError();
+    Array.prototype.forEach.call(document.querySelectorAll('td.opt'), function (cell) {
+      cell.classList.remove('selected');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* 点击遮罩关闭 */
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) {
+      overlay.classList.remove('show');
+    }
+  });
+})();
+</script>
+</body>
+</html>
