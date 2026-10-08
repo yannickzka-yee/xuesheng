@@ -101,7 +101,7 @@
   }
   h1 .deco{ font-size:.75em; letter-spacing:0; }
 
-  /* ---------- 姓名栏 ---------- */
+  /* ---------- 学号栏（原姓名栏） ---------- */
   .name-bar{
     display:flex;
     align-items:center;
@@ -143,7 +143,7 @@
   .name-bar input:focus{ box-shadow:0 0 0 3px #7fc8f0 inset; }
   .name-bar input::placeholder{ color:#a9c3d4; }
 
-  /* 姓名出错状态 */
+  /* 学号出错状态 */
   .name-bar.error{
     border-color:#ff9b9b;
     background:linear-gradient(135deg,#fff2f2,#ffe8e8);
@@ -453,11 +453,11 @@
 
       <div class="name-bar" id="nameBar">
         <span class="emoji">🐣</span>
-        <label for="name">我的名字：<span class="req">*</span></label>
+        <label for="name">我的学号：<span class="req">*</span></label>
         <input id="name" name="name" type="text" maxlength="20"
-               placeholder="请输入你的名字（必填）" autocomplete="off">
+               placeholder="请输入你的学号（必填）" autocomplete="off">
       </div>
-      <p class="name-error" id="nameError">✏️ 请先填写你的名字哦～</p>
+      <p class="name-error" id="nameError">✏️ 请先填写你的学号哦～</p>
 
       <div class="table-wrap">
         <table>
@@ -572,7 +572,7 @@
     }, 2600);
   }
 
-  /* ---------- 姓名错误提示 ---------- */
+  /* ---------- 学号错误提示 ---------- */
   function showNameError() {
     nameBar.classList.add('error');
     nameError.classList.add('show');
@@ -684,11 +684,11 @@
     e.preventDefault();
     e.stopPropagation();
 
-    // 1) 校验姓名（必填）
+    // 1) 校验学号（必填）
     var nameValue = nameInput.value.trim();
     if (!nameValue) {
       showNameError();
-      showToast('✏️ 请先填写你的名字哦～');
+      showToast('✏️ 请先填写你的学号哦～');
       return;
     }
     clearNameError();
@@ -717,7 +717,7 @@
 
     // 3) 组装数据
     var params = new URLSearchParams();
-    params.append('name', nameValue);
+    params.append('name', nameValue);  // 保持字段名不变，后台仍接收 name
     params.append('q1_调查表设计', answers.q1);
     params.append('q2_多角度调查', answers.q2);
     params.append('q3_合作与统计应用', answers.q3);
